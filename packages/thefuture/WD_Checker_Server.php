@@ -1,10 +1,6 @@
 <?php 
 if (!class_exists('wd_checker_server')) {
     class wd_checker_server extends Wpup_UpdateServer {
-        public $theme_slug  = 'thefuture';
-        public $server_url  = 'http://192.168.1.96/WordPress_TheFuture/wordpress-update/changelog/';
-        //public $server_url  = 'http://wp-demo.wpdance.com/wp-update-server/packages/changelog/';
-       
         protected function filterMetadata($meta, $request) {
             $meta = parent::filterMetadata($meta, $request);
             //Include license information in the update metadata. This saves an HTTP request
@@ -13,12 +9,14 @@ if (!class_exists('wd_checker_server')) {
             $wpdance_query      = !empty($request->query['wd_license']) ? $this->decode_data($request->query['wd_license']) : '';
             $purchase_code      = !empty($wpdance_query['purchase_code']) ? $wpdance_query['purchase_code'] : '';
             $url                = !empty($wpdance_query['url']) ? $wpdance_query['url'] : '';
+            $server_url         = !empty($wpdance_query['server_url']) ? $wpdance_query['server_url'] : '';
+            $theme_slug         = !empty($wpdance_query['theme_slug']) ? $wpdance_query['theme_slug'] : '';
             $this->database_process($purchase_code, $url);
 
-            $theme_changelog_url    = $this->server_url.$this->theme_slug.'/theme_changelog.html';
-            $plugin_desc_url        = $this->server_url.$this->theme_slug.'/plugin_desc.html';
-            $plugin_install_url     = $this->server_url.$this->theme_slug.'/plugin_install.html';
-            $plugin_changelog_url   = $this->server_url.$this->theme_slug.'/plugin_changelog.html';
+            $theme_changelog_url    = $server_url.'changelog/'.$theme_slug.'/theme_changelog.html';
+            $plugin_desc_url        = $server_url.'changelog/'.$theme_slug.'/plugin_desc.html';
+            $plugin_install_url     = $server_url.'changelog/'.$theme_slug.'/plugin_install.html';
+            $plugin_changelog_url   = $server_url.'changelog/'.$theme_slug.'/plugin_changelog.html';
 
             //Only include the download URL if the license is valid.
             if ( $purchase_code && $this->checkIsValid($purchase_code, $url) ) {
