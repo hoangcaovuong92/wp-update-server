@@ -13,10 +13,10 @@ DROP TABLE IF EXISTS `purchase_list`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `purchase_list` (
-  `purchase_code` varchar(255) NOT NULL,
+  `code` varchar(255) NOT NULL,
   `url` varchar(255) NOT NULL,
-  `date` varchar(40) NOT NULL,
-  PRIMARY KEY (`purchase_code`)
+  `update_date` varchar(40) NOT NULL,
+  PRIMARY KEY (`code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;

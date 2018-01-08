@@ -12,7 +12,7 @@
 
 LOCK TABLES `purchase_list` WRITE;
 /*!40000 ALTER TABLE `purchase_list` DISABLE KEYS */;
-INSERT INTO `purchase_list` VALUES ('','','');
+INSERT INTO `purchase_list` VALUES ('5dafd79b-3823-40bd-aec0-137633452bce','192.168.1.96','1515405298');
 /*!40000 ALTER TABLE `purchase_list` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;

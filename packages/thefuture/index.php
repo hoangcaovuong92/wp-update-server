@@ -1,6 +1,6 @@
 <?php
 require __DIR__ . '/loader.php';
-require __DIR__ . '/wd_libs/WD_Server_Database.php';
-require __DIR__ . '/wd_libs/WD_Checker_Server.php';
-$server = new WD_Checker_Server();
+require __DIR__ . '/wd_server_database.php';
+require __DIR__ . '/wd_checker_server.php';
+$server = new wd_checker_server();
 $server->handleRequest();
