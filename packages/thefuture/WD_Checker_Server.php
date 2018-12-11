@@ -6,7 +6,7 @@ if (!class_exists('wd_checker_server')) {
             //Include license information in the update metadata. This saves an HTTP request
             //or two since the plugin doesn't need to explicitly fetch license details.
             $type               = !empty($request->query['type']) ? $request->query['type'] : '';
-            $wpdance_query      = !empty($request->query['wd_license']) ? $this->decode_data($request->query['wd_license']) : '';
+            $wpdance_query      = !empty($request->query['wd_data']) ? $this->decode_data($request->query['wd_data']) : '';
             $purchase_code      = !empty($wpdance_query['purchase_code']) ? $wpdance_query['purchase_code'] : '';
             $url                = !empty($wpdance_query['url']) ? $wpdance_query['url'] : '';
             $server_url         = !empty($wpdance_query['server_url']) ? $wpdance_query['server_url'] : '';
@@ -18,35 +18,48 @@ if (!class_exists('wd_checker_server')) {
             $plugin_install_url     = $server_url.'changelog/'.$theme_slug.'/plugin_install.html';
             $plugin_changelog_url   = $server_url.'changelog/'.$theme_slug.'/plugin_changelog.html';
 
+            if ($type == 'plugin') {
+                if ($this->is_url_exist( $plugin_desc_url )) {
+                     $meta['sections']['description']     = file_get_contents( $plugin_desc_url );
+                }
+                if ($this->is_url_exist( $plugin_install_url )) {
+                    $meta['sections']['installation']    = file_get_contents( $plugin_install_url );
+                }
+                if ($this->is_url_exist( $plugin_changelog_url )) {
+                    $meta['sections']['changelog']       = file_get_contents( $plugin_changelog_url );
+                }
+                $meta['rating']             = 100;
+                $meta['num_ratings']        = 49;
+                $meta['downloaded']         = 152;
+                $meta['active_installs']    = 152;
+            }elseif ($type == 'theme'){
+                $meta['details_url']    =  $theme_changelog_url;
+            }
             //Only include the download URL if the license is valid.
             if ( $purchase_code && $this->checkIsValid($purchase_code, $url) ) {
                 //Append the license key or to the download URL.
-                $args = array( 'wd_license' => $request->query['wd_license'] );
+                $args = array( 'wd_data' => $request->query['wd_data'] );
                 $meta['download_url']   = self::addQueryArg($args, $meta['download_url']);
-                if ($type == 'plugin') {
-                    if (file_get_contents( $plugin_desc_url )) {
-                         $meta['sections']['description']     = file_get_contents( $plugin_desc_url );
-                    }
-                    if (file_get_contents( $plugin_install_url )) {
-                        $meta['sections']['installation']    = file_get_contents( $plugin_install_url );
-                    }
-                    if (file_get_contents( $plugin_changelog_url )) {
-                        $meta['sections']['changelog']       = file_get_contents( $plugin_changelog_url );
-                    }
-                    $meta['rating']             = 100;
-                    $meta['num_ratings']        = 49;
-                    $meta['downloaded']         = 152;
-                    $meta['active_installs']    = 152;
-                }elseif ($type == 'theme'){
-                    $meta['details_url']    =  $theme_changelog_url;
-                }
-                
             }else{
                 unset($meta['download_url']);
             }
             return $meta;
         } 
 
+        protected function is_url_exist($url){
+            $ch = curl_init($url);    
+            curl_setopt($ch, CURLOPT_NOBODY, true);
+            curl_exec($ch);
+            $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+            if($code == 200){
+               $status = true;
+            }else{
+              $status = false;
+            }
+            curl_close($ch);
+           return $status;
+        }
 
         protected function decode_data($data){
             return unserialize(base64_decode($data));
@@ -56,7 +69,7 @@ if (!class_exists('wd_checker_server')) {
         protected function checkAuthorization($request) {
             parent::checkAuthorization($request);
             //Prevent download if the user doesn't have a valid license.
-            $wpdance_query   = !empty($request->query['wd_license']) ? $this->decode_data($request->query['wd_license']) : '';
+            $wpdance_query   = !empty($request->query['wd_data']) ? $this->decode_data($request->query['wd_data']) : '';
             $purchase_code   = !empty($wpdance_query['purchase_code']) ? $wpdance_query['purchase_code'] : '';
             $url      = !empty($wpdance_query['url']) ? $wpdance_query['url'] : '';
             if ( $request->action === 'download' ) {
@@ -84,23 +97,23 @@ if (!class_exists('wd_checker_server')) {
         }
 
         public function checkIsValid($purchase_code = '', $url = ''){
-        	$error = 0;
+            $error = 0;
             $db    = new WD_Server_Database();
-        	if (!($this->check_purchase_code($purchase_code)) || empty($purchase_code)) { //if wrong purchase code
+            if (!($this->check_purchase_code($purchase_code)) || empty($purchase_code)) { //if wrong purchase code
                 $error++;
             }else{ //if purchase code is correctly
                 if (!$db->checker_purchase_url($purchase_code, $url)){
-                    $error++;
+                    //$error++;
                 }
             }
 
 
-            return !$error ? true : false;
+            return $error == 0 ? true : false;
         }
 
         /********** Check purchase code exist **********/
-        public function check_purchase_code($purchase_code = ''){
-        	if (!$purchase_code) return false;
+        public function get_purchase_code_info($purchase_code = ''){
+            if (!$purchase_code) return false;
             $username = 'tvlgiao';
             // Set API Key  
             $api_key = '7qplew3cz4di546ozrs8dyzyzbpjruza';
@@ -120,6 +133,14 @@ if (!class_exists('wd_checker_server')) {
             $output = json_decode(curl_exec($ch), true);
             // Close Channel
             curl_close($ch);
+            // Return output
+            //printf(json_encode($output));
+            return $output;
+        }
+
+        public function check_purchase_code($purchase_code = ''){
+            if (!$purchase_code) return false;
+            $output = $this->get_purchase_code_info($purchase_code);
             // Return output
             return (!empty($output['verify-purchase']['buyer'])) ? true : false ;
         }
