@@ -216,7 +216,10 @@
 
 							//Copy file from template to new theme folder.
 							if (!is_dir("./packages/$theme_slug")) {
-								wd_folder_copy("./template", "./packages/$theme_slug");
+								wd_folder_copy("./template/packages", "./packages/$theme_slug");
+							}
+							if (!is_dir("./changelog/$theme_slug")) {
+								wd_folder_copy("./template/changelog", "./changelog/$theme_slug");
 							}
 							//Create doccument folder if not exist.
 							if (!is_dir($docs_dir)) {
